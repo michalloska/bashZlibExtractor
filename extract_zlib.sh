@@ -1,6 +1,7 @@
 #!/bin/bash
 # Michal Loska 16.11.2021
-# Precondition: sudo apt install qpdf
+# Do not mind the unexpected end of file warnings!
+# Precondition: gzip
 # Assumption: input file name can be changed with env var: INPUT_ARCHIVE_NAME. If not set, 'syslog' by default
 #             example file names: syslog.1.zlib, syslog.2.zlib, syslog.3.zlib, ...
 # Assumption: output file name can be changed with env var: OUTPUT_FILE_NAME. If not set, 'extracted_logs' by default
@@ -12,8 +13,11 @@
 [[ -z "${OUTPUT_FILE_NAME}" ]] && default_output_name='extracted_logs' || default_output_name="${OUTPUT_FILE_NAME}"
 [[ -z "${OUTPUT_FILE_FORMAT}" ]] && default_output_format='.log' || default_output_format="${OUTPUT_FILE_FORMAT}"
 
+zlib_header="\x1f\x8b\x08\x00\x00\x00\x00\x00"
+
 if [ "$1" == "help" ]; then
-    echo "Precondition: sudo apt install qpdf"
+    echo "Do not mind the unexpected end of file warnings!"
+    echo "Precondition: gzip"
     echo "Assumption: input file name can be changed with env var: INPUT_ARCHIVE_NAME. If not set, 'syslog' by default"
     echo "            example file names: syslog.1.zlib, syslog.2.zlib, syslog.3.zlib, ..."
     echo "Assumption: output file name can be changed with env var: OUTPUT_FILE_NAME. If not set, 'extracted_logs' by default"
@@ -41,12 +45,11 @@ if test -f "$default_output_name""$default_output_format"; then
     echo "$default_output_name$default_output_format file exists, creating new file: $new_file_name"
     touch "$new_file_name"
 fi
-
 for ((i = $2; i >= $1; i--)); do
     printf "Iteration $i - $(date)\n"
     archive_name="$archive_base_name.$i.zlib"
     echo "-------------- $archive_name --------------" >>"./$default_output_name""$default_output_format"
-    zlib-flate -uncompress <"./$archive_name" >>"./$default_output_name""$default_output_format"
+    printf "$zlib_header" | cat - "$archive_name" | zcat >> "./$default_output_name""$default_output_format"
 
     if [ "$3" == "remove" ]; then
         echo "Removing ./$archive_name"
