@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Michal Loska 16.11.2021
 # Do not mind the unexpected end of file warnings!
 # Precondition: gzip
@@ -45,7 +45,8 @@ if test -f "$default_output_name""$default_output_format"; then
     echo "$default_output_name$default_output_format file exists, creating new file: $new_file_name"
     touch "$new_file_name"
 fi
-for ((i = $2; i >= $1; i--)); do
+
+for i in `seq $2 -1 $1`; do
     printf "Iteration $i - $(date)\n"
     archive_name="$archive_base_name.$i.zlib"
     echo "-------------- $archive_name --------------" >>"./$default_output_name""$default_output_format"
